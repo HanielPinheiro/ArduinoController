@@ -1,22 +1,14 @@
 ﻿using System.IO.Ports;
 
-namespace ArduinoController
+namespace SerialPortController
 {
     public class Control : IDisposable
     {
         private const int defaultSleep = 1000;
 
-        private int baudRate;
-        private int dataBits;
-        private int readTimeOut;
-        private int writeTimeOut;
-        private Parity parity;
-        private StopBits stopBits;
-        private Handshake handShake;
-        private readonly string? portName;
-
+        private readonly Parameters parameters = new Parameters();
         private readonly SerialPort serialPort;
-        private readonly bool defaultMode = false;
+        public bool IsConnected { get => serialPort!.IsOpen; }
 
         public Control() { serialPort = new SerialPort(); }
 
@@ -26,32 +18,19 @@ namespace ArduinoController
         /// <param name="portName"></param>
         public Control(string _portName)
         {
-            portName = _portName;
-
-            defaultMode = true;
             serialPort = new SerialPort();
+
+            parameters.PortName = _portName;
+            parameters.CopyTo(serialPort);
         }
 
-        public Control(string _portName, int _baudRate, int _dataBits, int _readTimeOut, int _writeTimeOut, Parity _parity, StopBits _stopBits, Handshake _handShake)
+        public Control(Parameters _parameters)
         {
-            baudRate = _baudRate;
-            parity = _parity;
-            dataBits = _dataBits;
-            stopBits = _stopBits;
-            handShake = _handShake;
-            readTimeOut = _readTimeOut;
-            writeTimeOut = _writeTimeOut;
-            portName = _portName;
-
-            defaultMode = false;
             serialPort = new SerialPort();
-        }
 
-        public bool IsConnected { get => serialPort!.IsOpen; }
-        public bool IsDefaultMode { get => defaultMode; }
-        public string? ReadedData { get; private set; } = null;
-        public List<string> AllReadedData { get; private set; } = new List<string>();
-
+            parameters.CopyFrom(_parameters);
+            parameters.CopyTo(serialPort);
+        }        
 
         #region Reset
 
@@ -61,24 +40,11 @@ namespace ArduinoController
         public void Reset(bool defaultConfiguration)
         {
             Dispose();
-            ResetConfiguration(defaultConfiguration);
-            InitializeSerialPort();
-        }
 
-        private void ResetConfiguration(bool defaultConfiguration)
-        {
-            if (defaultConfiguration) SetDefaultConfiguration();
-            else
-            {
-                serialPort!.PortName = portName;
-                serialPort!.BaudRate = baudRate;
-                serialPort!.Parity = parity;
-                serialPort!.DataBits = dataBits;
-                serialPort!.StopBits = stopBits;
-                serialPort!.Handshake = handShake;
-                serialPort!.ReadTimeout = readTimeOut;
-                serialPort!.WriteTimeout = writeTimeOut;
-            }
+            parameters.CopyFrom(new Parameters());
+            parameters.CopyTo(serialPort);
+
+            InitializeSerialPort();
         }
 
         #endregion
@@ -114,26 +80,15 @@ namespace ArduinoController
 
         #endregion
 
-        #region Set Parameters
-
         /// <summary>
         /// Set a Received Event Handler to handler data received from board
         /// </summary>
         /// <param name="dataReceivedHandler"></param>
-        public void SetDataReceivedEventHandler(SerialDataReceivedEventHandler dataReceivedHandler) { serialPort!.DataReceived += dataReceivedHandler; }
-
-        public void SetDefaultConfiguration()
-        {
-            baudRate = 115200;
-            parity = Parity.None;
-            dataBits = 8;
-            stopBits = StopBits.One;
-            handShake = Handshake.None;
-            readTimeOut = 20;
-            writeTimeOut = 20;
+        public void SetDataReceivedEventHandler(SerialDataReceivedEventHandler dataReceivedHandler)
+        {   
+            serialPort!.DataReceived += dataReceivedHandler; 
         }
 
-        #endregion
 
     }
 }

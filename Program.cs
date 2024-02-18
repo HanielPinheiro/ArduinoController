@@ -1,4 +1,4 @@
-namespace ArduinoController
+namespace SerialPortController
 {
     internal static class Program
     {
