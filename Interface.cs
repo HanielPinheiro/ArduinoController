@@ -21,10 +21,5 @@ namespace ArduinoController
             materialSkinManager.ColorScheme = new ColorScheme(Primary.BlueGrey800, Primary.BlueGrey900, Primary.BlueGrey500, Accent.LightBlue200, TextShade.WHITE);
 
         }
-
-        private void materialLabel6_Click(object sender, EventArgs e)
-        {
-
-        }
     }
 }
